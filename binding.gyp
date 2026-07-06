@@ -45,6 +45,11 @@
               ],
             }],
           ],
+          # Reserve header padding so install_name_tool can add LC_RPATH
+          # entries to the prebuilt binaries without corrupting them.
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [ '-Wl,-headerpad_max_install_names' ]
+          },
           'defines': [ 'NAPI_DISABLE_CPP_EXCEPTIONS' ]
         }],
         [ 'OS == "freebsd"', {
