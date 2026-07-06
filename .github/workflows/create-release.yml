@@ -14,15 +14,12 @@ jobs:
       matrix:
         node-version:
           - 20.x
+        # ppc64le removed: that runner is not available on this fork.
         os:
           - windows-2022
           - ubuntu-22.04
           - macos-15
           - macos-15-intel
-          - ubuntu-24.04-ppc64le
-        include:
-          - os: ubuntu-24.04-ppc64le
-            arch: ppc64le
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
@@ -65,11 +62,6 @@ jobs:
     - name: get-npm-version
       id: package-version
       run: jq -r '"version=" + .version' package.json  >> "$GITHUB_OUTPUT"
-    - name: get-npm-tag
-      id: package-tag
-      run: .github/npm-tag.sh $PACKAGE_VERSION >> "$GITHUB_OUTPUT"
-      env:
-        PACKAGE_VERSION: ${{ steps.package-version.outputs.version }}
     # Download all of the various binaries that were created
     - name: Download built binaries from workflow
       uses: actions/download-artifact@v5
@@ -77,22 +69,16 @@ jobs:
         path: binaries
         pattern: binaries-*
         merge-multiple: true
-    - name: Create Release 
+    - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v2
       with:
         draft: false
-        prerelease: false
+        prerelease: true
         name: ${{ steps.package-version.outputs.version }}
         generate_release_notes: true
         fail_on_unmatched_files: true
         files:
           ./binaries/odbc-*.tar.gz
-    - name: Publish to NPM
-      uses: actions/setup-node@v4
-      with:
-        node-version: '24'
-        registry-url: 'https://registry.npmjs.org'
-    - run: npm publish --tag $PACKAGE_TAG
-      env:
-        PACKAGE_TAG: ${{ steps.package-tag.outputs.tag }}
+    # npm publish removed: this fork only distributes prebuilt binaries
+    # through GitHub Releases; the package is never published to npm.
